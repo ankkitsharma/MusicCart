@@ -1,9 +1,10 @@
-import pg from "pg";
-import env from "dotenv";
+import { Pool } from "pg";
+import { config } from "dotenv";
 
-env.config();
+config();
 
-const pool = new pg.Pool({
+// Initialize pg pool middleware for working with psql db
+const pool = new Pool({
   user: process.env.PG_USER,
   host: process.env.PG_HOST,
   database: process.env.PG_DATABASE,

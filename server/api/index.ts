@@ -1,21 +1,29 @@
 // Import the express in typescript file
-import express from "express";
-import dotenv from "dotenv";
+import express, { NextFunction } from "express";
+import { config } from "dotenv";
 import cors from "cors";
 import pool from "../dbConfig";
+import { CustomError } from "../error";
+import authRouter from "../routes/authRouter";
+import cookieParser from "cookie-parser";
 
 // Initialize the dotenv
-dotenv.config();
+config();
 
 // Initialize the express engine
 const app: express.Application = express();
 
 // Enable cors middleware
 app.use(cors());
+app.use(cookieParser());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use("/api/auth", authRouter);
 
 // Take a port from .env for running server.
 const port: number = Number(process.env.PORT);
 
+// Test pool connection with DB
 pool.query("SELECT NOW()", (err, res) => {
   if (err) {
     console.error("Error connecting to PostgresSQL database:", err);
