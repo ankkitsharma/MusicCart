@@ -2,8 +2,9 @@ import bcrypt from "bcrypt";
 import { createError } from "../error";
 import jwt from "jsonwebtoken";
 import { NextFunction, Request, Response } from "express";
-import { Interface } from "readline";
 import pool from "../dbConfig";
+import { generateAccessToken, generateRefreshToken } from "../jwt";
+import { QueryResult } from "pg";
 
 interface customSignUpRequest extends Request {
   body: {
@@ -28,7 +29,6 @@ export const signUp = async (
       req.body;
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
-    console.log("here");
     const emailCheckQuery = {
       text: "SELECT * from users WHERE username = $1",
       values: [username],
@@ -56,7 +56,60 @@ export const signUp = async (
     });
     next();
   } catch (error) {
-    console.error("Error signing up:");
+    console.error("Error signing up ");
+    next(error);
+  }
+};
+
+// interface customSignInRequest extends Request {
+//   username: string;
+//   password: string;
+//   email: string;
+// }
+
+interface SignInQueryResult extends QueryResult {
+  username: string;
+  password_hash: string;
+  email: string;
+}
+
+export const signIn = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { username, email, password } = req.body;
+    const user: SignInQueryResult = (await pool.query(
+      `SELECT * FROM users WHERE ${username ? "username" : "email"} = $1 `,
+      [username || email]
+    )) as SignInQueryResult;
+    console.log(user.rows[0]);
+    if (user.rows.length === 0) {
+      return next(createError(404, "User not found"));
+    } else {
+      const isCorrect = await bcrypt.compare(
+        password,
+        user.rows[0].password_hash
+      );
+      console.log("isCorrect ", isCorrect);
+      if (!isCorrect) return next(createError(400, "wrong Credentials!"));
+      const accessToken = generateAccessToken(user.rows[0]);
+      const refreshToken = generateRefreshToken(user.rows[0]);
+      res
+        .cookie("accessToken", accessToken, { httpOnly: true, secure: true })
+        .cookie("refreshToken", refreshToken, { httpOnly: true, secure: true })
+        .status(200)
+        .json({
+          message: "Login successful",
+          user: user.rows[0],
+          accessToken,
+          refreshToken,
+        });
+      next();
+    }
+  } catch (error) {
+    console.error("Error logging in ");
     next(error);
   }
 };
