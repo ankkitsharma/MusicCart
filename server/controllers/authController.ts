@@ -95,8 +95,14 @@ export const signIn = async (
       const accessToken = generateAccessToken(user.rows[0]);
       const refreshToken = generateRefreshToken(user.rows[0]);
       res
-        .cookie("accessToken", accessToken, { httpOnly: true, secure: true })
-        .cookie("refreshToken", refreshToken, { httpOnly: true, secure: true })
+        .cookie("accessToken", accessToken, {
+          httpOnly: true,
+          secure: true,
+        })
+        .cookie("refreshToken", refreshToken, {
+          httpOnly: true,
+          secure: true,
+        })
         .status(200)
         .json({
           message: "Login successful",
