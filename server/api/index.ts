@@ -5,6 +5,7 @@ import cors from "cors";
 import pool from "../dbConfig";
 import { CustomError } from "../error";
 import authRouter from "../routes/authRouter";
+import userRouter from "../routes/userRouter";
 import cookieParser from "cookie-parser";
 
 // Initialize the dotenv
@@ -19,6 +20,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", authRouter);
+app.use("/api/user", userRouter);
 
 // Take a port from .env for running server.
 const port: number = Number(process.env.PORT);

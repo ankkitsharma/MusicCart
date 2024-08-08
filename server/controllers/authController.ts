@@ -84,15 +84,13 @@ export const signIn = async (
       `SELECT * FROM users WHERE ${username ? "username" : "email"} = $1 `,
       [username || email]
     )) as SignInQueryResult;
-    console.log(user.rows[0]);
-    if (user.rows.length === 0) {
+    if (user.rowCount === 0) {
       return next(createError(404, "User not found"));
     } else {
       const isCorrect = await bcrypt.compare(
         password,
         user.rows[0].password_hash
       );
-      console.log("isCorrect ", isCorrect);
       if (!isCorrect) return next(createError(400, "wrong Credentials!"));
       const accessToken = generateAccessToken(user.rows[0]);
       const refreshToken = generateRefreshToken(user.rows[0]);
