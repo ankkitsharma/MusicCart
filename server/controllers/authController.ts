@@ -61,16 +61,12 @@ export const signUp = async (
   }
 };
 
-// interface customSignInRequest extends Request {
-//   username: string;
-//   password: string;
-//   email: string;
-// }
-
 interface SignInQueryResult extends QueryResult {
   username: string;
   password_hash: string;
   email: string;
+  first_name: string;
+  last_name: string;
 }
 
 export const signIn = async (
@@ -95,10 +91,6 @@ export const signIn = async (
       const accessToken = generateAccessToken(user.rows[0]);
       const refreshToken = generateRefreshToken(user.rows[0]);
       res
-        .cookie("accessToken", accessToken, {
-          httpOnly: true,
-          secure: true,
-        })
         .cookie("refreshToken", refreshToken, {
           httpOnly: true,
           secure: true,
@@ -108,7 +100,6 @@ export const signIn = async (
           message: "Login successful",
           user: user.rows[0],
           accessToken,
-          refreshToken,
         });
       next();
     }

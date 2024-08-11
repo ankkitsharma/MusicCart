@@ -17,18 +17,21 @@ export const verifyToken = (
   next: NextFunction
 ) => {
   try {
-    const token = req.cookies.accessToken;
-    console.log("token", token);
-    if (!token) return next(createError(401, "You are not authenticated!"));
-    jwt.verify(
-      token,
-      String(process.env.ACCESS_TOKEN_SECRET),
-      (err: any, user: UserType) => {
-        if (err) return next(createError(403, "Token is not valid!"));
-        req.user = user;
-        next();
-      }
-    );
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+      const token = authHeader.split(" ")[1];
+      jwt.verify(
+        token,
+        String(process.env.ACCESS_TOKEN_SECRET),
+        (err: any, user: UserType) => {
+          if (err) return next(createError(403, "Token is not valid!"));
+          req.user = user;
+          next();
+        }
+      );
+    } else {
+      return next(createError(401, "You are not authenticated!"));
+    }
   } catch (error) {
     next(error);
   }
@@ -40,26 +43,16 @@ export const refreshToken = (
   next: NextFunction
 ) => {
   try {
-    const token = req.cookies.refreshToken;
-    if (!token) return next(createError(403, "No token to refresh!"));
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) return next(createError(403, "No refresh token!"));
     jwt.verify(
-      token,
+      refreshToken,
       String(process.env.REFRESH_TOKEN_SECRET),
       (err: any, user: UserType) => {
         if (err) return next(createError(401, "Unauthorized!"));
         const newAccessToken = generateAccessToken(user);
-        const newRefreshToken = generateRefreshToken(user);
-        res.cookie("accessToken", newAccessToken, {
-          httpOnly: true,
-          secure: true,
-        });
-        res.cookie("refreshToken", newRefreshToken, {
-          httpOnly: true,
-          secure: true,
-        });
         res.json({
           accessToken: newAccessToken,
-          refreshToken: newRefreshToken,
         });
         next();
       }
@@ -77,10 +70,14 @@ export const generateAccessToken = (user: UserType) => {
 
 //res.cookie('accessToken', accessToken, { httpOnly: true, secure: true });
 
-export const generateRefreshToken = (user: UserType) => {
-  return jwt.sign({ user }, String(process.env.REFRESH_TOKEN_SECRET), {
-    expiresIn: "7d",
-  });
+export const generateRefreshToken = (user: { username: string }) => {
+  return jwt.sign(
+    { username: user.username },
+    String(process.env.REFRESH_TOKEN_SECRET),
+    {
+      expiresIn: 604800,
+    }
+  );
 };
 
 //res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
