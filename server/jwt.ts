@@ -22,7 +22,7 @@ export const verifyToken = (
     if (!token) return next(createError(401, "You are not authenticated!"));
     jwt.verify(
       token,
-      process.env.ACCESS_TOKEN_SECRET as string,
+      String(process.env.ACCESS_TOKEN_SECRET),
       (err: any, user: UserType) => {
         if (err) return next(createError(403, "Token is not valid!"));
         req.user = user;
