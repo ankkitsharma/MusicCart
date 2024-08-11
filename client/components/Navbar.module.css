@@ -1,0 +1,13 @@
+.search-icon {
+  background: url("../public/searchIcon.svg") no-repeat right;
+  background-position: 97%;
+  background-size: 20px;
+  background-color: rgb(241, 240, 240);
+}
+
+.search-icon:focus {
+  outline: none;
+}
+
+@media screen and (max-width: 792px) {
+}

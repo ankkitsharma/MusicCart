@@ -19,7 +19,7 @@
 # misc
 .DS_Store
 *.pem
-.env
+package-lock.json
 
 # debug
 npm-debug.log*
@@ -35,6 +35,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-#other
-package-lock.json
